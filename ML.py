@@ -4,8 +4,8 @@ import pickle
 import collections
 
 
-
 class Generator:
+
     def __init__(self, file, n_sens, seed):
         self.file = file
         self.n_sens = n_sens  # number of sentences
@@ -24,16 +24,28 @@ class Generator:
         len_s = []  # Length of sentences
         endings = []
         beginnings = []
+        print(sentences)
         for i in range(len(sentences)):
             sentence = sentences[i].split(' ')
-            endings.append(sentence[-1])
-            beginnings.append(sentence[0])
+            sentence = list(filter(None, sentence))
+            if sentence:
+                endings.append(sentence[-1])
+                beginnings.append(sentence[0])
+            print(sentence)
             c = 0
             for word in sentence:
                 c += 1
             len_s.append(c)
         beginnings = list(filter(None, beginnings))
         endings = list(filter(None, endings))
+
+        end_beg = {}  # dict of ends and beginnings of sentences
+        for i in range(len(endings) - 2):
+            if endings[i] not in end_beg:
+                end_beg[endings[i]] = []
+                end_beg[endings[i]].append(beginnings[i + 1])
+            else:
+                end_beg[endings[i]].append(beginnings[i + 1])
 
         mean = sum(len_s) / len(len_s)
         common = dict(collections.Counter(len_s).most_common(15)).keys()  # the most frequent numbers of words
@@ -65,6 +77,9 @@ class Generator:
         with open('beginnings.pkl', 'wb') as f:
             pickle.dump(beginnings, f)
 
+        with open('end_beg.pkl', 'wb') as f:
+            pickle.dump(end_beg, f)
+
     def generate(self):
 
         with open('keys.pkl', 'rb') as f:
@@ -76,33 +91,39 @@ class Generator:
         with open('endings.pkl', 'rb') as f:
             endings = pickle.load(f)
 
-        with open('beginnings.pkl', 'rb') as f:
-            beginnings = pickle.load(f)
+        with open('end_beg.pkl', 'rb') as f:
+            end_beg = pickle.load(f)
 
         self.seed = self.seed.lower()
         new_text = self.seed.capitalize()
-        new_text += ' ' + random.choice(keys[self.seed])
+        new_text += ' ' + random.choice(keys[self.seed]) + ' '
 
         # generating the new text
         for s in range(self.n_sens - 1):  #
             for i in range(random.choice(common) - 4):
-                new_text += ' ' + random.choice(keys[new_text.split()[-1]]) + ' '
+                new_text += random.choice(keys[new_text.split()[-1]]) + ' '
             key_of_end = random.choice(keys[new_text.split()[-1]])  # key of the last word in sentence
             new_text += key_of_end + ' '
             true_endings = []  # list with endings that suit values from keys
             for e in endings:
                 if e in keys[key_of_end]:
                     true_endings.append(e)
-            new_text += random.choice(true_endings) + '. '
+            end = random.choice(true_endings)
+            new_text += end + '. '
 
             if s != (self.n_sens - 1):  # starting the new sentence
-                beginning = random.choice(beginnings)
-                new_text += beginning.capitalize() + ' ' + random.choice(keys[beginning])
+                beginning = random.choice(end_beg[end])
+                new_text += beginning.capitalize() + ' ' + random.choice(keys[beginning]) + ' '
         new_text += '.'
 
         print(new_text)
 
 
-t = Generator('The_Hunger_Games.txt', 3, 'i')
-t.fit()
-t.generate()
+file_name = input('Пожалуйста, введите название текста для тренировки алгоритма: ')
+sentences = int(input('И количетсво предложений в новом тексте: '))
+seed = input('Теперь, пожалуйста, введите первое слово в тексте: ')
+
+
+generator = Generator(file_name, sentences, seed)
+generator.fit()
+generator.generate()
