@@ -17,20 +17,17 @@ class Generator:
 
         # cleaning text to count sentences
         text = re.sub('[^A-Za-z?!. ]', '', text)
-        text = re.sub('[][,;:"{}()></`]', ' ', text)
 
-        sentences = re.sub('[?!.]', ' ', text).split()
+        sentences = re.split('[?!.]', text)
 
         # making the list of lengths of sentences and list of endings and beginnings
         len_s = []  # Length of sentences
         endings = []
         beginnings = []
         for i in range(len(sentences)):
-
             sentence = sentences[i].split(' ')
             endings.append(sentence[-1])
             beginnings.append(sentence[0])
-
             c = 0
             for word in sentence:
                 c += 1
@@ -42,6 +39,7 @@ class Generator:
         common = dict(collections.Counter(len_s).most_common(15)).keys()  # the most frequent numbers of words
         common = list(common)
         common.append(round(mean))
+
 
         # Clearing the text to generate keys
         text = re.sub('[^a-zA-Zа-яА-Я ]+', '', text).split()
@@ -83,21 +81,21 @@ class Generator:
 
         self.seed = self.seed.lower()
         new_text = self.seed.capitalize()
-        new_text += ' ' + random.choice(keys[self.seed]) + ' '
+        new_text += ' ' + random.choice(keys[self.seed])
 
         # generating the new text
-        for s in range(self.n_sens - 1):
+        for s in range(self.n_sens - 1):  #
             for i in range(random.choice(common) - 4):
-                new_text += random.choice(keys[new_text.split()[-1]]) + ' '
-            key_of_end = random.choice(keys[new_text.split()[-1]])
-            new_text += ' ' + key_of_end + ' '
-            true_endings = []
+                new_text += ' ' + random.choice(keys[new_text.split()[-1]]) + ' '
+            key_of_end = random.choice(keys[new_text.split()[-1]])  # key of the last word in sentence
+            new_text += key_of_end + ' '
+            true_endings = []  # list with endings that suit values from keys
             for e in endings:
                 if e in keys[key_of_end]:
                     true_endings.append(e)
             new_text += random.choice(true_endings) + '. '
 
-            if s != (self.n_sens - 1):
+            if s != (self.n_sens - 1):  # starting the new sentence
                 beginning = random.choice(beginnings)
                 new_text += beginning.capitalize() + ' ' + random.choice(keys[beginning])
         new_text += '.'
@@ -105,6 +103,6 @@ class Generator:
         print(new_text)
 
 
-t = Generator('The_Hunger_Games.txt', 5, 'the')
+t = Generator('The_Hunger_Games.txt', 3, 'i')
 t.fit()
 t.generate()
