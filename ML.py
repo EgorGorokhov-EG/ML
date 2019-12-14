@@ -119,9 +119,9 @@ class Generator:
         print(new_text)
 
 
-file_name = input('Пожалуйста, введите название текста для тренировки алгоритма: ')
-sentences = int(input('И количетсво предложений в новом тексте: '))
-seed = input('Теперь, пожалуйста, введите первое слово в тексте: ')
+file_name = input('Please choose the text to train the generator: ')
+sentences = int(input('Now input a number of sentences to generate: '))
+seed = input('The first word of the generated text: ')
 
 
 generator = Generator(file_name, sentences, seed)
